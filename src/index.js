@@ -5,8 +5,19 @@ dotev.config({
   path: "./env",
 });
 
-connectDB();
-
+connectDB()
+  .then(() => {
+    app.listen(process.env.PORT || 8000, () => {
+      console.log(`server is listning at : ${process.env.PORT}`);
+    });
+    app.on("error", (error) => {
+      console.log("ERROR :", error);
+      throw error;
+    });
+  })
+  .catch((err) => {
+    console.log("MONGO db connection failed !!!", err);
+  });
 /* import express from "express";
  const app = express()(async () => {
    try {
