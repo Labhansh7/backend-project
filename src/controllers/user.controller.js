@@ -3,6 +3,7 @@ import { ApiError } from "../utils/ApiError.js";
 import { User } from "../models/user.model.js";
 import { uploadOnCloudiary } from "../utils/Cloudinary.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
+import mongoose from "mongoose";
 
 const registerUser = asyncHandler(async (req, res) => {
   //steps for new user registeration
@@ -17,30 +18,41 @@ const registerUser = asyncHandler(async (req, res) => {
   //9. return response
 
   //1. get user details from frontend
-  const { fullnName, email, username, password } = req.body;
-  console.log("email: ", email);
+  const { fullName, email, username, password } = req.body;
+  // console.log("email: ", email);
 
   //2. validation - not empty(inmported api error)
   if (
-    [fullnName, email, username, password].some((field = field?.trim() === "")) // aagar koi bhi field trim k baad empty hai to true return karega mtlb wo khali tha (sab ko ek sath check kr rahe hai)
+    [fullName, email, username, password].some((field) => field?.trim() === "") // aagar koi bhi field trim k baad empty hai to true return karega mtlb wo khali tha (sab ko ek sath check kr rahe hai)
   ) {
     throw new ApiError(400, "all fields are required");
   }
 
   //3. check if user already exists:username, email (imported user model.js)
 
-  const existedUser = User.findOne({
+  const existedUser = await User.findOne({
     $or: [{ username }, { email }],
   });
 
   if (existedUser) {
     throw new ApiError(409, "User with Email or Username already exists");
   }
+  // console.log(req.files);
 
-  //4. check for images, check for avatar
+  // 4. check for images, check for avatar
   const avatarLocalPath = req.files?.avatar[0]?.path;
 
-  const coverImageLocalPath = req.files?.coverImage[0]?.path;
+  // const coverImageLocalPath = req.files?.coverImage[0]?.path;
+
+  let coverImageLocalPath;
+
+  if (
+    req.files &&
+    Array.isArray(req.files.coverImage) &&
+    req.files.coverImage.length > 0
+  ) {
+    coverImageLocalPath = req.files.coverImage[0].path;
+  }
 
   if (!avatarLocalPath) {
     throw new ApiError(400, "Avatar file is required");
@@ -57,7 +69,7 @@ const registerUser = asyncHandler(async (req, res) => {
 
   //6. create user object- create entry in db(user file)
   const user = await User.create({
-    fullnName,
+    fullName,
     avatar: avatar.url,
     coverImage: coverImage?.url || "",
     email,
