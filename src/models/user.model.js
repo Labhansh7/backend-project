@@ -61,7 +61,7 @@ userSchema.methods.isPasswordCorrect = async function (password) {
   return await bcrypt.compare(password, this.password);
 };
 
-userSchema.methods.generateAccessToken = function () {
+userSchema.methods.generateAccessToken = function () { //access token :- usually short lived jab thk hai ye tab tk authenticated ho login ho tab tk kr lo
   return jwt.sign(
     {
       _id: this._id,
@@ -75,7 +75,7 @@ userSchema.methods.generateAccessToken = function () {
     }
   );
 };
-userSchema.methods.generateRefreshToken = function () {
+userSchema.methods.generateRefreshToken = function () { //refresh token :- usually long lived  endpoint bar bar password dalne ki jarurat nhi hai
   return jwt.sign(
     {
       _id: this._id,
